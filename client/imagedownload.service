@@ -1,0 +1,11 @@
+[Unit]
+Description=Init download of kiosk images
+After=network.target
+
+[Service]
+ExecStart=/bin/sh /home/pi/pi_kiosk/client/init_download.sh
+StandardInput=tty
+StandardOutput=tty
+
+[Install]
+WantedBy=multi-user.target
