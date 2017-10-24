@@ -1,0 +1,12 @@
+[Unit]
+Description=Splash downloading screen
+DefaultDependencies=no
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/fbi -d /dev/fb0 --noverbose -a /home/pi/pi_kiosk/client/boot_images/downloading.png
+StandardInput=tty
+StandardOutput=tty
+
+[Install]
+WantedBy=multi-user.target

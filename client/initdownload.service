@@ -1,0 +1,11 @@
+[Unit]
+Description=Init download of kiosk images
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/node /home/pi/pi_kiosk/client/index.js once
+User=pi
+
+[Install]
+WantedBy=multi-user.target
