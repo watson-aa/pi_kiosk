@@ -1,0 +1,76 @@
+{
+	"screenshots": [
+		{
+			"url": "https://10.1.3.50/icingaweb2/dashboard",
+			"formfiller": [
+				{ 
+					"selector": "input[name=username]",
+					"type": "text",
+					"value": "webcenter"
+				},
+				{ 
+					"selector": "input[name=password]",
+					"type": "text",
+					"value": ""
+				},
+				{ 
+					"selector": "input[name=btn_submit]",
+					"type": "button"
+				}
+			],
+			"await": [],
+			"refresh": 60,
+			"initEval": ["icinga.ui.toggleFullscreen()"],
+			"alwaysEval": [],
+			"closeBrowser": false
+		},
+		{
+			"url": "https://stopandshop.com/?activateLogin=true",
+			"formfiller": [
+				{ 
+					"selector": "#username-modal",
+					"type": "text",
+					"value": "aaron.watson.sns.test@mailinator.com"
+				},
+				{ 
+					"selector": "#password-modal",
+					"type": "text",
+					"value": ""
+				},
+				{ 
+					"selector": "#login-submit-button-modal",
+					"type": "button"
+				}
+			],
+			"await": ["#hero > div > div > div.c-hero__slide.slick-slide.slick-current.slick-active > div > div"],
+			"refresh": 1800,
+			"initEval": [],
+			"alwaysEval": [],
+			"closeBrowser": false
+		},
+		{
+			"url": "https://dashboard.localytics.com/dashboards/?org_id=108#/57687?app_id=130f3a57f9a5bb014b0f395-f77f6824-0282-11e7-ee2d-00cb4c4ea3b3&days=30&offset=0",
+			"formfiller": [
+				{ 
+					"selector": "#user_email",
+					"type": "text",
+					"value": "aaron.watson@ahold.com"
+				},
+				{ 
+					"selector": "#user_password",
+					"type": "text",
+					"value": ""
+				},
+				{ 
+					"selector": "input[name='commit']",
+					"type": "button"
+				}
+			],
+			"await": ["#report_f540a6aef5ca8e2e4892cb8cfdd823e4"],
+			"refresh": 1800,
+			"initEval": [],
+			"alwaysEval": [],
+			"closeBrowser": false
+		}
+	]
+}
