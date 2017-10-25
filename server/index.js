@@ -12,16 +12,23 @@ async function downloadScreenshot(index, config) {
   //const browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
   var browser = false;
   if (config.closeBrowser == true || !config.browser) {
-	browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
+		browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
   } else {
-	browser = config.browser;
+		browser = config.browser;
   }
   const page = await browser.newPage();
 
-  await page.setViewport({
-     width: 1920,
-     height: 1080
-  });
+	if (config.viewport) {
+		await page.setViewport({
+	     width: config.viewport.width,
+	     height: config.viewport.height
+	  });
+	} else {
+		await page.setViewport({
+	     width: 1920,
+	     height: 1080
+	  });
+	}
 
   await page.goto(config.url, {'waitUntil': 'networkidle', 'networkIdleTimeout': 3000});
 
