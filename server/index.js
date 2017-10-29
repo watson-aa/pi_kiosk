@@ -83,11 +83,11 @@ async function downloadScreenshot(index, config) {
 					});
 
   for (var elem of config.await) {
-	await page.waitFor(elem)
-		.catch(function() {
-			console.log('died waiting for: ' + elem);
-			return false;
-		});
+		await page.waitFor(elem)
+			.catch(function() {
+				console.log('died waiting for: ' + elem);
+				return false;
+			});
   }
 
   for (var initEval of config.initEval) {
@@ -102,7 +102,7 @@ async function downloadScreenshot(index, config) {
 							.catch(function() {
 								console.log('screenshot: ' + config.url);
 								return false;
-							}).
+							});
 
   //if (config.closeBrowser == true) {
 	if (browser) {
