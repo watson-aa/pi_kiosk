@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer'),
 
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
-	downloadScreenshot(x, screenshot);
+		downloadScreenshot(x, screenshot);
   });
 }
 
@@ -12,25 +12,41 @@ async function downloadScreenshot(index, config) {
   //const browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
   var browser = false;
   if (config.closeBrowser == true || !config.browser) {
-		browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
+		browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
+											.catch(function() {
+												console.log('launch error: ' + config.url);
+											});
   } else {
 		browser = config.browser;
   }
-  const page = await browser.newPage();
+  const page = await browser.newPage()
+								.catch(function() {
+									console.log('newPage error: ' + config.url);
+								});
 
 	if (config.viewport) {
 		await page.setViewport({
 	     width: config.viewport.width,
 	     height: config.viewport.height
-	  });
+	  }).catch(function() {
+			console.log('setViewport: ' + config.url);
+		});
 	} else {
 		await page.setViewport({
 	     width: 1920,
 	     height: 1080
-	  });
+	  }).catch(function() {
+			console.log('setViewport: ' + config.url);
+		});
 	}
 
-  await page.goto(config.url, {'waitUntil': 'networkidle', 'networkIdleTimeout': 3000});
+  await page.goto(config.url,
+									{
+										'waitUntil': 'networkidle',
+										'networkIdleTimeout': 3000
+									}).catch(function() {
+										console.log('page.goto: ' + config.url);
+									});
 
   for (var elem of config.formfiller) {
 	await page.focus(elem.selector, {delay: 200})
@@ -52,7 +68,10 @@ async function downloadScreenshot(index, config) {
   }
 
   // I dislike this...
-  await page.waitFor(3 * 1000);
+  await page.waitFor(3 * 1000)
+					.catch(function() {
+						console.log('waitFor: ' + config.url);
+					});
 
   for (var elem of config.await) {
 	await page.waitFor(elem)
@@ -68,10 +87,15 @@ async function downloadScreenshot(index, config) {
 		});
   }
 
-  await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' });
+  await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+							.catch(function() {
+								console.log('screenshot: ' + config.url);
+							}).
 
   //if (config.closeBrowser == true) {
-	browser.close();
+	await browser.close().catch(function() {
+		console.log('close: ' + config.url);
+	});
   //}
 
   return browser;
