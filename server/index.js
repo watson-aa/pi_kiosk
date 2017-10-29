@@ -9,7 +9,6 @@ async function run() {
 }
 
 async function downloadScreenshot(index, config) {
-  //const browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true});
   var browser = false;
   if (config.closeBrowser == true || !config.browser) {
 		browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
@@ -20,7 +19,9 @@ async function downloadScreenshot(index, config) {
   } else {
 		browser = config.browser;
   }
-  const page = await browser.newPage()
+
+  if (browser) {
+ 	 const page = await browser.newPage()
 								.catch(function() {
 									console.log('newPage error: ' + config.url);
 									return false;
@@ -44,16 +45,16 @@ async function downloadScreenshot(index, config) {
 		});
 	}
 
-  await page.goto(config.url,
-									{
-										'waitUntil': 'networkidle',
-										'networkIdleTimeout': 3000
-									}).catch(function() {
-										console.log('page.goto: ' + config.url);
-										return false;
-									});
+  	await page.goto(config.url,
+						{
+							'waitUntil': 'networkidle',
+							'networkIdleTimeout': 3000
+						}).catch(function() {
+							console.log('page.goto: ' + config.url);
+							return false;
+						});
 
-  for (var elem of config.formfiller) {
+	for (var elem of config.formfiller) {
 		await page.waitFor(elem.selector)
 			.catch(function() {
 				console.log('died waiting for: ' + elem);
@@ -77,47 +78,43 @@ async function downloadScreenshot(index, config) {
 					console.log('unable to click: ' + elem.selector);
 					return false;
 				});
+		}
 	  }
-  }
 
-  // I dislike this...
-  await page.waitFor(3 * 1000)
-					.catch(function() {
-						console.log('waitFor: ' + config.url);
-						return false;
-					});
+	// I dislike this...
+	await page.waitFor(3 * 1000)
+						.catch(function() {
+							console.log('waitFor: ' + config.url);
+							return false;
+						});
 
-  for (var elem of config.await) {
-		await page.waitFor(elem)
+	for (var elem of config.await) {
+			await page.waitFor(elem)
+				.catch(function() {
+					console.log('died waiting for: ' + elem);
+					return false;
+				});
+	}
+
+	for (var initEval of config.initEval) {
+		await page.evaluate(initEval)
 			.catch(function() {
-				console.log('died waiting for: ' + elem);
+				console.log('unable to eval: ' + initEval);
 				return false;
 			});
-  }
-
-  for (var initEval of config.initEval) {
-  	await page.evaluate(initEval)
-		.catch(function() {
-			console.log('unable to eval: ' + initEval);
-			return false;
-		});
-  }
-
-  await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
-							.catch(function() {
-								console.log('screenshot: ' + config.url);
-								return false;
-							});
-
-  //if (config.closeBrowser == true) {
-	if (browser) {
-		browser.close();
-		return browser;
-	} else {
-		return false;
 	}
-  //}
 
+	await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+								.catch(function() {
+									console.log('screenshot: ' + config.url);
+									return false;
+								});
+	browser.close();
+	return browser;
+
+  } else {	// no browser
+	  return false;
+  }
 }
 
 while (true) {
