@@ -54,25 +54,30 @@ async function downloadScreenshot(index, config) {
 									});
 
   for (var elem of config.formfiller) {
-	await page.focus(elem.selector, {delay: 200})
-		.catch(function() {
-			console.log('unable to focus: ' + elem.selector);
-			return false;
-		});
+		await page.waitFor(elem.selector)
+			.catch(function() {
+				console.log('died waiting for: ' + elem);
+				return false;
+			});
+		await page.focus(elem.selector, {delay: 200})
+			.catch(function() {
+				console.log('unable to focus: ' + elem.selector);
+				return false;
+			});
 
-	if (elem.type == "text") {
-		await page.type(elem.selector, elem.value, {delay: 200})
-			.catch(function() {
-				console.log('unable to text: ' + elem.selector);
-				return false;
-			});
-	} else if (elem.type == "button") {
-		await page.click(elem.selector, {delay: 200})
-			.catch(function() {
-				console.log('unable to click: ' + elem.selector);
-				return false;
-			});
-  	}
+		if (elem.type == "text") {
+			await page.type(elem.selector, elem.value, {delay: 200})
+				.catch(function() {
+					console.log('unable to text: ' + elem.selector);
+					return false;
+				});
+		} else if (elem.type == "button") {
+			await page.click(elem.selector, {delay: 200})
+				.catch(function() {
+					console.log('unable to click: ' + elem.selector);
+					return false;
+				});
+	  }
   }
 
   // I dislike this...
