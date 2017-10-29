@@ -8,13 +8,20 @@ async function run() {
   });
 }
 
+function errorHandle(msg, browser) {
+	console.log(msg);
+	if (browser) {
+		browser.close();
+	}
+	return false;
+}
+
 async function downloadScreenshot(index, config) {
   var browser = false;
   if (config.closeBrowser == true || !config.browser) {
 		browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
 											.catch(function() {
-												console.log('launch error: ' + config.url);
-												return false;
+												return errorHandle('launch error: ' + config.url, browser);
 											});
   } else {
 		browser = config.browser;
@@ -23,8 +30,7 @@ async function downloadScreenshot(index, config) {
   if (browser) {
  	 const page = await browser.newPage()
 								.catch(function() {
-									console.log('newPage error: ' + config.url);
-									return false;
+									return errorHandle('newPage error: ' + config.url, browser);
 								});
 
 	if (config.viewport) {
@@ -32,16 +38,14 @@ async function downloadScreenshot(index, config) {
 	     width: config.viewport.width,
 	     height: config.viewport.height
 	  }).catch(function() {
-			console.log('setViewport: ' + config.url);
-			return false;
+			return errorHandle('setViewport 1: ' + config.url, browser);
 		});
 	} else {
 		await page.setViewport({
 	     width: 1920,
 	     height: 1080
 	  }).catch(function() {
-			console.log('setViewport: ' + config.url);
-			return false;
+			return errorHandle('setViewport 2: ' + config.url, browser);
 		});
 	}
 
@@ -50,33 +54,28 @@ async function downloadScreenshot(index, config) {
 							'waitUntil': 'networkidle',
 							'networkIdleTimeout': 3000
 						}).catch(function() {
-							console.log('page.goto: ' + config.url);
-							return false;
+							return errorHandle('page.goto: ' + config.url, browser);
 						});
 
 	for (var elem of config.formfiller) {
 		await page.waitFor(elem.selector)
 			.catch(function() {
-				console.log('died waiting for: ' + elem);
-				return false;
+				return errorHandle('died waiting for: ' + elem.selector, browser);
 			});
 		await page.focus(elem.selector, {delay: 200})
 			.catch(function() {
-				console.log('unable to focus: ' + elem.selector);
-				return false;
+				return errorHandle('unable to focus: ' + elem.selector, browser);
 			});
 
 		if (elem.type == "text") {
 			await page.type(elem.selector, elem.value, {delay: 200})
 				.catch(function() {
-					console.log('unable to text: ' + elem.selector);
-					return false;
+					return errorHandle('unable to type: ' + elem.selector, browser);
 				});
 		} else if (elem.type == "button") {
 			await page.click(elem.selector, {delay: 200})
 				.catch(function() {
-					console.log('unable to click: ' + elem.selector);
-					return false;
+					return errorHandle('unable to click: ' + elem.selector, browser);
 				});
 		}
 	  }
@@ -84,30 +83,26 @@ async function downloadScreenshot(index, config) {
 	// I dislike this...
 	await page.waitFor(3 * 1000)
 						.catch(function() {
-							console.log('waitFor: ' + config.url);
-							return false;
+							return errorHandle('waitFor: ' + config.url, browser);
 						});
 
 	for (var elem of config.await) {
 			await page.waitFor(elem)
 				.catch(function() {
-					console.log('died waiting for: ' + elem);
-					return false;
+					return errorHandle('died waiting for: ' + elem, browser);
 				});
 	}
 
 	for (var initEval of config.initEval) {
 		await page.evaluate(initEval)
 			.catch(function() {
-				console.log('unable to eval: ' + initEval);
-				return false;
+				return errorHandle('unable to eval: ' + initEval, browser);
 			});
 	}
 
 	await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
 								.catch(function() {
-									console.log('screenshot: ' + config.url);
-									return false;
+									return errorHandle('screenshot: ' + config.url, browser);
 								});
 	browser.close();
 	return browser;
