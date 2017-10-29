@@ -105,10 +105,14 @@ async function downloadScreenshot(index, config) {
 							}).
 
   //if (config.closeBrowser == true) {
-	browser.close();
+	if (browser) {
+		browser.close();
+		return browser;
+	} else {
+		return false;
+	}
   //}
 
-  return browser;
 }
 
 while (true) {
