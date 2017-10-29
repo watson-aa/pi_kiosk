@@ -93,7 +93,7 @@ async function downloadScreenshot(index, config) {
 							}).
 
   //if (config.closeBrowser == true) {
-	await browser.close();
+	browser.close();
   //}
 
   return browser;
