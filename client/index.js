@@ -21,20 +21,25 @@ function getEtag(num) {
 }
 
 function downloadImage(num) {
+  var url = 'http://' + host + '/' + hostPath + '/' + num + '.png';
   var options = {
-    host: host,
-    port: 80,
-    path: '/' + hostPath + '/' + num + '.png'
+    encoding: null
   };
 
-  var file = fs.createWriteStream(localPath + '/' + num + '.png');
+  var file = fs.createWriteStream(localPath + '/tmp' + num + '.png');
+  res = sRequest('GET', url, options);
+  file.write(res.getBody());
+  /*
   http.get(options, (res) => {
     try {
       res.pipe(file);
     } catch (err) {
-      console.log('Image download err: ' + num + '.png');
+      console.log('Image download err: tmp' + num + '.png');
     }
   });
+  */
+
+  fs.renameSync(localPath + '/tmp' + num + '.png', localPath + '/' + num + '.png');
 }
 
 function getImages() {
