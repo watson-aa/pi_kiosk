@@ -99,6 +99,14 @@ async function downloadScreenshot(index, config) {
 				});
 	}
 
+	// sleep
+	if (config.sleep && config.sleep > 0) {
+		await page.waitFor(config.sleep)
+		.catch(function() {
+			return errorHandle('died sleeping ' + config.sleep, browser);
+		});
+	}
+
 	// init scripts
 	for (var initEval of config.initEval) {
 		await page.evaluate(initEval)
