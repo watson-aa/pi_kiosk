@@ -2,6 +2,9 @@ const puppeteer = require('puppeteer'),
 	config = require('config'),
 	sleep = require('system-sleep');
 
+const destination = '/tmp/';  // TESTING
+//const destination = '/var/www/html/pi_kiosk/';
+
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
 		downloadScreenshot(x, screenshot);
@@ -9,7 +12,7 @@ async function run() {
 }
 
 function errorHandle(msg, browser) {
-	console.log(msg);
+	console.log('*ERR - ' + msg);
 	if (browser) {
 		browser.close();
 	}
@@ -49,6 +52,7 @@ async function downloadScreenshot(index, config) {
 		});
 	}
 
+	// initial navigation
   	await page.goto(config.url,
 						{
 							'waitUntil': 'networkidle',
@@ -57,6 +61,7 @@ async function downloadScreenshot(index, config) {
 							return errorHandle('page.goto: ' + config.url, browser);
 						});
 
+	// logins and whatnot
 	for (var elem of config.formfiller) {
 		await page.waitFor(elem.selector)
 			.catch(function() {
@@ -80,12 +85,13 @@ async function downloadScreenshot(index, config) {
 		}
 	  }
 
-	// I dislike this...
-	await page.waitFor(3 * 1000)
-						.catch(function() {
-							return errorHandle('waitFor: ' + config.url, browser);
-						});
+	// start with the basics
+	await page.waitFor('body')
+		.catch(function() {
+			return errorHandle('died waiting for BODY', browser);
+		});
 
+	// now the custom blockers
 	for (var elem of config.await) {
 			await page.waitFor(elem)
 				.catch(function() {
@@ -93,6 +99,7 @@ async function downloadScreenshot(index, config) {
 				});
 	}
 
+	// init scripts
 	for (var initEval of config.initEval) {
 		await page.evaluate(initEval)
 			.catch(function() {
@@ -100,11 +107,17 @@ async function downloadScreenshot(index, config) {
 			});
 	}
 
-	await page.screenshot({ path: '/var/www/html/pi_kiosk/' + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
-								.catch(function() {
-									return errorHandle('screenshot: ' + config.url, browser);
-								});
-	browser.close();
+	// finally take that screenshot!
+	await page.screenshot({ path: destination + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+		.catch(function() {
+			return errorHandle('screenshot: ' + config.url, browser);
+		});
+
+	await browser.close()
+		.catch(function() {
+			return errorHandle('browser.close: ' + config.url, browser);
+		});
+
 	return browser;
 
   } else {	// no browser
