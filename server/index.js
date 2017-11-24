@@ -2,8 +2,8 @@ const puppeteer = require('puppeteer'),
 	config = require('config'),
 	sleep = require('system-sleep');
 
-const destination = '/tmp/';  // TESTING
-//const destination = '/var/www/html/pi_kiosk/';
+//const destination = '/tmp/';  // TESTING
+const destination = '/var/www/html/pi_kiosk/';
 
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
