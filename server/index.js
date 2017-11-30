@@ -2,8 +2,8 @@ const puppeteer = require('puppeteer'),
 	config = require('config'),
 	sleep = require('system-sleep');
 
-//const destination = '/tmp/';  // TESTING
-const destination = '/var/www/html/pi_kiosk/';
+const destination = '/tmp/';  // TESTING
+//const destination = '/var/www/html/pi_kiosk/';
 
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
@@ -82,6 +82,12 @@ async function downloadScreenshot(index, config) {
 				.catch(function() {
 					return errorHandle('unable to click: ' + elem.selector, browser);
 				});
+		} else if (elem.type == "enter") {
+			await page.type(elem.selector, String.fromCharCode(13), {delay: 200})
+				.catch(function() {
+					return errorHandle('unable to type enter: ' + elem.selector, browser);
+				});
+			sleep(5 * 1000);				
 		}
 	  }
 
@@ -93,10 +99,24 @@ async function downloadScreenshot(index, config) {
 
 	// now the custom blockers
 	for (var elem of config.await) {
-			await page.waitFor(elem)
+		await page.waitFor(elem)
+			.catch(function() {
+				return errorHandle('died waiting for: ' + elem, browser);
+			});
+
+		/*
+			const elems = await page.$$(elem)
 				.catch(function() {
-					return errorHandle('died waiting for: ' + elem, browser);
+					return errorHandle('died selecting for: ' + elem, browser);
 				});
+			for (var e in elems) {
+				console.log('**** elem: ' + e);
+				await page.waitFor(e)
+					.catch(function() {
+						return errorHandle('died waiting for: ' + elem, browser);
+					});
+			}
+			*/
 	}
 
 	// sleep
