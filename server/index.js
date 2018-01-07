@@ -8,6 +8,8 @@ const destination = '/tmp/';  // TESTING
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
 		downloadScreenshot(x, screenshot);
+		// a bad compromise
+		sleep(5 * 1000);
   });
 }
 
@@ -36,30 +38,35 @@ async function downloadScreenshot(index, config) {
 									return errorHandle('newPage error: ' + config.url, browser);
 								});
 
+	// generic error handler
+	page.on('error', (err) => {
+		return errorHandle('page error: ' + config.url,  browser);
+	})
+
 	if (config.viewport) {
 		await page.setViewport({
-	     width: config.viewport.width,
-	     height: config.viewport.height
-	  }).catch(function() {
+	    	width: config.viewport.width,
+	    	height: config.viewport.height
+	  	}).catch(function() {
 			return errorHandle('setViewport 1: ' + config.url, browser);
 		});
 	} else {
 		await page.setViewport({
-	     width: 1920,
-	     height: 1080
-	  }).catch(function() {
+	    	width: 1920,
+	    	height: 1080
+	  	}).catch(function() {
 			return errorHandle('setViewport 2: ' + config.url, browser);
 		});
 	}
 
 	// initial navigation
   	await page.goto(config.url,
-						{
-							'waitUntil': 'networkidle',
-							'networkIdleTimeout': 3000
-						}).catch(function() {
-							return errorHandle('page.goto: ' + config.url, browser);
-						});
+		{
+			'waitUntil': 'networkidle',
+			'networkIdleTimeout': 3000
+		}).catch(function() {
+			return errorHandle('page.goto: ' + config.url, browser);
+	});
 
 	// logins and whatnot
 	for (var elem of config.formfiller) {
@@ -87,7 +94,7 @@ async function downloadScreenshot(index, config) {
 				.catch(function() {
 					return errorHandle('unable to type enter: ' + elem.selector, browser);
 				});
-			sleep(5 * 1000);				
+			//sleep(5 * 1000);				
 		}
 	  }
 
