@@ -39,9 +39,12 @@ async function downloadScreenshot(index, config) {
 								});
 
 	// generic error handler
+	browser.on('error', (err) => {
+		return errorHandle('browser error: ' + config.url,  browser);
+	});
 	page.on('error', (err) => {
 		return errorHandle('page error: ' + config.url,  browser);
-	})
+	});
 
 	if (config.viewport) {
 		await page.setViewport({
