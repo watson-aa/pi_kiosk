@@ -8,7 +8,10 @@ const DESTINATION = '/tmp/';  // TESTING
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 
-const MINUTES_SLEEP = 10;
+const MINUTES_SLEEP = 1;
+
+var browser = false;
+var pages = {};
 
 async function run() {
 	let counter = 0;
@@ -20,14 +23,11 @@ async function run() {
 
 async function getBrowser() {
 	let browser = false;
-	if (config.closeBrowser == true || !config.browser) {
-		  browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
-						.catch((err) => {
-							console.log('launch error: ' + config.url + ' -- ' + err);
-						});
-	} else {
-		  browser = config.browser;
-	}
+	browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
+				.catch((err) => {
+					console.log('launch error: ' + config.url + ' -- ' + err);
+					browser = false;
+				});
 
 	// insert generic error handlers
 	browser.on('error', (err) => {
@@ -37,7 +37,7 @@ async function getBrowser() {
 	return browser;
 }
 
-async function getPage(browser) {
+async function createPage() {
 	const page = await browser.newPage()
 	.catch((err) => {
 		console.log('newPage error: ' + config.url + ' -- ' + err);
@@ -47,6 +47,17 @@ async function getPage(browser) {
 	page.on('error', (err) => {
 		console.log('page error: ' + config.url + ' -- ' + err);
 	});
+
+	return page;
+}
+
+async function getPage(pageNumber) {
+	if (pages[pageNumber]) {
+		return pages[pageNumber];
+	}
+
+	let page = await createPage();
+	pages[pageNumber] = page;
 
 	return page;
 }
@@ -156,20 +167,23 @@ async function closeBrowser(browser, url) {
 		});
 }
 
-async function closePage(page, url) {
+async function closePage(pageNumber, url) {
+	let page = pages[pageNumber];
 	await page.close()
 		.catch((err) => {
 			return console.log('page.close: ' + url + ' -- ' + err);
 		});
+
+	pages[pageNumber] = false;
 }
 
 async function downloadScreenshot(index, config) {
-	let browser = await getBrowser();
+	browser = await getBrowser();
 	if (browser == false) {
 		return false;
 	}
 
-	let page = await getPage(browser);
+	let page = await getPage(index);
 
 	await setPageViewportSize(page, config.viewport);
 
@@ -185,9 +199,9 @@ async function downloadScreenshot(index, config) {
 
 	await captureScreenshot(page, index, config.url);
 
-	await closeBrowser(browser);
-
-	return browser;
+	if (config.closePage == true) {
+		await closePage(index, config.url);
+	}
 }
 
 (async () => {
