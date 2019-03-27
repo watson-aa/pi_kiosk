@@ -18,20 +18,12 @@ async function run() {
 	}
 }
 
-function errorHandle(msg, browser) {
-	console.log('*ERR - ' + msg);
-	if (browser) {
-		browser.close();
-	}
-	return false;
-}
-
 async function getBrowser() {
 	let browser = false;
 	if (config.closeBrowser == true || !config.browser) {
 		  browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
-						.catch(function() {
-							return errorHandle('launch error: ' + config.url, browser);
+						.catch((err) => {
+							console.log('launch error: ' + config.url + ' -- ' + err);
 						});
 	} else {
 		  browser = config.browser;
@@ -39,7 +31,7 @@ async function getBrowser() {
 
 	// insert generic error handlers
 	browser.on('error', (err) => {
-		return errorHandle('browser error: ' + config.url,  browser);
+		console.log('browser error: ' + config.url + ' -- ' + err);
 	});
 
 	return browser;
@@ -47,13 +39,13 @@ async function getBrowser() {
 
 async function getPage(browser) {
 	const page = await browser.newPage()
-	.catch(function() {
-		return errorHandle('newPage error: ' + config.url, browser);
+	.catch((err) => {
+		console.log('newPage error: ' + config.url + ' -- ' + err);
 	});
 
 	// insert generic error handlers
 	page.on('error', (err) => {
-		return errorHandle('page error: ' + config.url,  browser);
+		console.log('page error: ' + config.url + ' -- ' + err);
 	});
 
 	return page;
@@ -70,8 +62,8 @@ async function setPageViewportSize(page, viewportConfig) {
 	await page.setViewport({
 		width: width,
 		height: height
-	  }).catch(function() {
-		return errorHandle('setViewport 1: ' + url, page);
+	  }).catch((err) => {
+		console.log('setViewport 1: ' + url + ' -- ' + err);
 	});
 }
 
@@ -79,8 +71,8 @@ async function loadInitialUrl(page, url) {
 	await page.goto(url,
 		{
 			'waitUntil': 'networkidle2'
-		}).catch(function(e) {
-			return errorHandle('page.goto: ' + url + " -- " + e.message, page);
+		}).catch((err) => {
+			console.log('page.goto: ' + url + ' -- ' + errr.message);
 	});
 }
 
@@ -88,28 +80,28 @@ async function insertFormValues(page, formFiller) {
 	// logins and whatnot
 	for (var elem of formFiller) {
 		await page.waitFor(elem.selector)
-			.catch(function() {
-				return errorHandle('died waiting for: ' + elem.selector, page);
+			.catch((err) => {
+				console.log('died waiting for: ' + elem.selector + ' -- ' + err);
 			});
 		await page.focus(elem.selector, {delay: 200})
-			.catch(function() {
-				return errorHandle('unable to focus: ' + elem.selector, page);
+			.catch((err) => {
+				console.log('unable to focus: ' + elem.selector + ' -- ' + err);
 			});
 
 		if (elem.type == "text") {
 			await page.type(elem.selector, elem.value, {delay: 200})
-				.catch(function() {
-					return errorHandle('unable to type: ' + elem.selector, page);
+				.catch((err) => {
+					console.log('unable to type: ' + elem.selector + ' -- ' + err);
 				});
 		} else if (elem.type == "button") {
 			await page.click(elem.selector, {delay: 200})
-				.catch(function() {
-					return errorHandle('unable to click: ' + elem.selector, page);
+				.catch((err) => {
+					console.log('unable to click: ' + elem.selector + ' -- ' + err);
 				});
 		} else if (elem.type == "enter") {
 			await page.type(elem.selector, String.fromCharCode(13), {delay: 200})
-				.catch(function() {
-					return errorHandle('unable to type enter: ' + elem.selector, page);
+				.catch((err) => {
+					console.log('unable to type enter: ' + elem.selector + ' -- ' + err);
 				});
 		}
 	  }
@@ -118,15 +110,15 @@ async function insertFormValues(page, formFiller) {
 async function waitForPageRender(page, awaitConfig) {
 	// start with the basics
 	await page.waitFor('body')
-		.catch(function() {
-			return errorHandle('died waiting for BODY', page);
+		.catch((err) => {
+			console.log('died waiting for BODY -- ' + err);
 		});
 
 	// now the custom blockers
 	for (var elem of awaitConfig) {
 		await page.waitFor(elem)
-			.catch(function() {
-				return errorHandle('died waiting for: ' + elem, page);
+			.catch((err) => {
+				console.log('died waiting for: ' + elem + ' -- ' + err);
 			});
 		}
 }
@@ -134,8 +126,8 @@ async function waitForPageRender(page, awaitConfig) {
 async function customSleepDuration(page) {
 	if (config.sleep && config.sleep > 0) {
 		await page.waitFor(config.sleep)
-		.catch(function() {
-			return errorHandle('died sleeping ' + config.sleep, browser);
+		.catch((err) => {
+			console.log('died sleeping ' + config.sleep + ' -- ' + err);
 		});
 	}
 }
@@ -143,8 +135,8 @@ async function customSleepDuration(page) {
 async function runInitJSScripts(page, initEvals) {
 	for (var initEval of initEvals) {
 		await page.evaluate(initEval)
-			.catch(function() {
-				return errorHandle('unable to eval: ' + initEval, page);
+			.catch((err) => {
+				console.log('unable to eval: ' + initEval + ' -- ' + err);
 			});
 	}
 }
@@ -152,22 +144,22 @@ async function runInitJSScripts(page, initEvals) {
 async function captureScreenshot(page, fileNumber, url) {
 	// filename is a zero-padded, 2 digit integer
 	await page.screenshot({ path: DESTINATION + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
-		.catch(function() {
-			return errorHandle('screenshot: ' + url, page);
+		.catch((err) => {
+			console.log('screenshot: ' + url + ' -- ' + err);
 		});
 }
 
 async function closeBrowser(browser, url) {
 	await browser.close()
-		.catch(function() {
-			return errorHandle('browser.close: ' + url, browser);
+		.catch((err) => {
+			console.log('browser.close: ' + url + ' -- ' + err);
 		});
 }
 
 async function closePage(page, url) {
 	await page.close()
-		.catch(function() {
-			return errorHandle('page.close: ' + url, page);
+		.catch((err) => {
+			return console.log('page.close: ' + url + ' -- ' + err);
 		});
 }
 
