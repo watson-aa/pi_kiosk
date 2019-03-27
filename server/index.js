@@ -2,11 +2,13 @@ const puppeteer = require('puppeteer'),
 	  config = require('config'),
 	  sleep = require('system-sleep');
 
-const destination = '/tmp/';  // TESTING
-//const destination = '/var/www/html/pi_kiosk/';
+const DESTINATION = '/tmp/';  // TESTING
+//const DESTINATION = '/var/www/html/pi_kiosk/';
 
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
+
+const MINUTES_SLEEP = 10;
 
 async function run() {
   config.get('screenshots').forEach((screenshot, x) => {
@@ -138,6 +140,37 @@ async function customSleepDuration(page) {
 	}
 }
 
+async function runInitJSScripts(page, initEvals) {
+	for (var initEval of initEvals) {
+		await page.evaluate(initEval)
+			.catch(function() {
+				return errorHandle('unable to eval: ' + initEval, page);
+			});
+	}
+}
+
+async function captureScreenshot(page, fileNumber, url) {
+	// filename is a zero-padded, 2 digit integer
+	await page.screenshot({ path: DESTINATION + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+		.catch(function() {
+			return errorHandle('screenshot: ' + url, page);
+		});
+}
+
+async function closeBrowser(browser, url) {
+	await browser.close()
+		.catch(function() {
+			return errorHandle('browser.close: ' + url, browser);
+		});
+}
+
+async function closePage(page, url) {
+	await page.close()
+		.catch(function() {
+			return errorHandle('page.close: ' + url, page);
+		});
+}
+
 async function downloadScreenshot(index, config) {
 	let browser = await getBrowser();
 	if (browser == false) {
@@ -156,24 +189,11 @@ async function downloadScreenshot(index, config) {
 
 	await customSleepDuration(page);
 
-	// init scripts
-	for (var initEval of config.initEval) {
-		await page.evaluate(initEval)
-			.catch(function() {
-				return errorHandle('unable to eval: ' + initEval, browser);
-			});
-	}
+	await runInitJSScripts(page, config.initEval);
 
-	// finally take that screenshot!
-	await page.screenshot({ path: destination + index.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
-		.catch(function() {
-			return errorHandle('screenshot: ' + config.url, browser);
-		});
+	await captureScreenshot(page, index, config.url);
 
-	await browser.close()
-		.catch(function() {
-			return errorHandle('browser.close: ' + config.url, browser);
-		});
+	await closeBrowser(browser);
 
 	return browser;
 }
@@ -181,5 +201,5 @@ async function downloadScreenshot(index, config) {
 while (true) {
 	console.log('running...');
 	run();
-	sleep(10 * 60 * 1000);
+	sleep(MINUTES_SLEEP * (60 * 1000) );
 }
