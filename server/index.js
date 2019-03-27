@@ -11,11 +11,11 @@ const VIEWPORT_HEIGHT = 1080;
 const MINUTES_SLEEP = 10;
 
 async function run() {
-  config.get('screenshots').forEach((screenshot, x) => {
-		downloadScreenshot(x, screenshot);
-		// a bad compromise
-		sleep(5 * 1000);
-  });
+	let counter = 0;
+	for (var screenshot of config.screenshots) {
+		await downloadScreenshot(counter, screenshot);
+		counter++;
+	}
 }
 
 function errorHandle(msg, browser) {
@@ -30,9 +30,9 @@ async function getBrowser() {
 	let browser = false;
 	if (config.closeBrowser == true || !config.browser) {
 		  browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
-											  .catch(function() {
-												  return errorHandle('launch error: ' + config.url, browser);
-											  });
+						.catch(function() {
+							return errorHandle('launch error: ' + config.url, browser);
+						});
 	} else {
 		  browser = config.browser;
 	}
@@ -128,7 +128,7 @@ async function waitForPageRender(page, awaitConfig) {
 			.catch(function() {
 				return errorHandle('died waiting for: ' + elem, page);
 			});
-	}
+		}
 }
 
 async function customSleepDuration(page) {
@@ -198,8 +198,11 @@ async function downloadScreenshot(index, config) {
 	return browser;
 }
 
-while (true) {
-	console.log('running...');
-	run();
-	sleep(MINUTES_SLEEP * (60 * 1000) );
-}
+(async () => {
+	while (true) {
+		console.log('running...');
+		await run();
+		console.log('sleeping...');
+		sleep(MINUTES_SLEEP * (60 * 1000) );
+	}
+})();
