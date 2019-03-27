@@ -21,8 +21,7 @@ async function run() {
 	}
 }
 
-async function getBrowser() {
-	let browser = false;
+async function initBrowser() {
 	browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
 				.catch((err) => {
 					console.log('launch error: ' + config.url + ' -- ' + err);
@@ -33,15 +32,13 @@ async function getBrowser() {
 	browser.on('error', (err) => {
 		console.log('browser error: ' + config.url + ' -- ' + err);
 	});
-
-	return browser;
 }
 
 async function createPage() {
 	const page = await browser.newPage()
-	.catch((err) => {
-		console.log('newPage error: ' + config.url + ' -- ' + err);
-	});
+		.catch((err) => {
+			console.log('newPage error: ' + config.url + ' -- ' + err);
+		});
 
 	// insert generic error handlers
 	page.on('error', (err) => {
@@ -52,6 +49,10 @@ async function createPage() {
 }
 
 async function getPage(pageNumber) {
+	if (browser == false) {
+		await initBrowser();
+	}
+
 	if (pages[pageNumber]) {
 		return pages[pageNumber];
 	}
@@ -85,6 +86,13 @@ async function loadInitialUrl(page, url) {
 		}).catch((err) => {
 			console.log('page.goto: ' + url + ' -- ' + errr.message);
 	});
+}
+
+async function renderPage(page, config) {
+	await setPageViewportSize(page, config.viewport);
+	await loadInitialUrl(page, config.url);
+	await insertFormValues(page, config.formfiller);
+	await waitForPageRender(page, config.await);
 }
 
 async function insertFormValues(page, formFiller) {
@@ -178,23 +186,11 @@ async function closePage(pageNumber, url) {
 }
 
 async function downloadScreenshot(index, config) {
-	browser = await getBrowser();
-	if (browser == false) {
-		return false;
-	}
-
 	let page = await getPage(index);
 
-	await setPageViewportSize(page, config.viewport);
+	await renderPage(page, config);
 
-	await loadInitialUrl(page, config.url);
-
-	await insertFormValues(page, config.formfiller);
-
-	await waitForPageRender(page, config.await);
-
-	await customSleepDuration(page);
-
+	//await customSleepDuration(page);
 	await runInitJSScripts(page, config.initEval);
 
 	await captureScreenshot(page, index, config.url);
