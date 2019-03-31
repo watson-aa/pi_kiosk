@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer'),
-	  config = require('config'),
-	  sleep = require('system-sleep');
+	  config = require('config');
 
 const DESTINATION = '/tmp/';  // TESTING
 //const DESTINATION = '/var/www/html/pi_kiosk/';
@@ -80,50 +79,79 @@ async function setPageViewportSize(page, viewportConfig) {
 }
 
 async function loadInitialUrl(page, url) {
+	let success = true;
 	await page.goto(url,
 		{
 			'waitUntil': 'networkidle2'
 		}).catch((err) => {
-			console.log('page.goto: ' + url + ' -- ' + errr.message);
+			success = false;
+			console.log('page.goto: ' + url + ' -- ' + err.message);
 	});
+
+	return success;
 }
 
 async function renderPage(page, config) {
 	await setPageViewportSize(page, config.viewport);
-	await loadInitialUrl(page, config.url);
-	await insertFormValues(page, config.formfiller);
+
+	let pageLoaded = false;
+
+	if (page.url != 'about:blank') {
+		pageLoaded = await loadInitialUrl(page, config.url);
+	}
+	
+	// newly loaded page or session ended
+	if (config['_loaded'] != true || page.url() != config.url) {
+		await insertFormValues(page, config.formfiller);
+	}
+
 	await waitForPageRender(page, config.await);
+
+	config._loaded = pageLoaded;
 }
 
 async function insertFormValues(page, formFiller) {
+	let success = true;
+
 	// logins and whatnot
 	for (var elem of formFiller) {
 		await page.waitFor(elem.selector)
 			.catch((err) => {
+				success = false;
 				console.log('died waiting for: ' + elem.selector + ' -- ' + err);
 			});
 		await page.focus(elem.selector, {delay: 200})
 			.catch((err) => {
+				success = false;
 				console.log('unable to focus: ' + elem.selector + ' -- ' + err);
 			});
 
 		if (elem.type == "text") {
 			await page.type(elem.selector, elem.value, {delay: 200})
 				.catch((err) => {
+					success = false;
 					console.log('unable to type: ' + elem.selector + ' -- ' + err);
 				});
 		} else if (elem.type == "button") {
 			await page.click(elem.selector, {delay: 200})
 				.catch((err) => {
+					success = false;
 					console.log('unable to click: ' + elem.selector + ' -- ' + err);
 				});
 		} else if (elem.type == "enter") {
 			await page.type(elem.selector, String.fromCharCode(13), {delay: 200})
 				.catch((err) => {
+					success = false;
 					console.log('unable to type enter: ' + elem.selector + ' -- ' + err);
 				});
 		}
+
+		if (success == false) {
+			break;
+		}
 	  }
+
+	  return success;
 }
 
 async function waitForPageRender(page, awaitConfig) {
@@ -190,7 +218,6 @@ async function downloadScreenshot(index, config) {
 
 	await renderPage(page, config);
 
-	//await customSleepDuration(page);
 	await runInitJSScripts(page, config.initEval);
 
 	await captureScreenshot(page, index, config.url);
@@ -200,11 +227,15 @@ async function downloadScreenshot(index, config) {
 	}
 }
 
+function sleep(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}
+
 (async () => {
 	while (true) {
 		console.log('running...');
 		await run();
 		console.log('sleeping...');
-		sleep(MINUTES_SLEEP * (60 * 1000) );
+		await sleep(5);
 	}
 })();
