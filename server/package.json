@@ -1,16 +1,24 @@
 {
-  "name": "puppet",
+  "name": "pi_kiosk_server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Server component of an eyes-on-glass raspberry pi kiosk solution",
   "main": "index.js",
+  "dependencies": {
+    "config": "^3.0.1",
+    "puppeteer": "^1.13.0"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/watson-aa/pi_kiosk.git"
+  },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "config": "^1.26.2",
-    "puppeteer": "^0.12.0",
-    "system-sleep": "^1.3.6"
-  }
+  "bugs": {
+    "url": "https://github.com/watson-aa/pi_kiosk/issues"
+  },
+  "homepage": "https://github.com/watson-aa/pi_kiosk#readme"
 }
