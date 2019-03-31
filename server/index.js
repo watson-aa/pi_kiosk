@@ -236,6 +236,6 @@ function sleep(seconds) {
 		console.log('running...');
 		await run();
 		console.log('sleeping...');
-		await sleep(5);
+		await sleep(MINUTES_SLEEP * 60);
 	}
 })();
