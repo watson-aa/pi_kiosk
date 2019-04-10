@@ -1,13 +1,13 @@
 const puppeteer = require('puppeteer'),
 	  config = require('config');
 
-const DESTINATION = '/tmp/';  // TESTING
-//const DESTINATION = '/var/www/html/pi_kiosk/';
-
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 
 const MINUTES_SLEEP = 1;
+
+var destination = '/tmp/';
+//var destination = '/var/www/html/pi_kiosk/';
 
 var browser = false;
 var pages = {};
@@ -190,7 +190,7 @@ async function runInitJSScripts(page, initEvals) {
 
 async function captureScreenshot(page, fileNumber, url) {
 	// filename is a zero-padded, 2 digit integer
-	await page.screenshot({ path: DESTINATION + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+	await page.screenshot({ path: destination + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
 		.catch((err) => {
 			console.log('screenshot: ' + url + ' -- ' + err);
 		});
@@ -232,6 +232,10 @@ function sleep(seconds) {
 }
 
 (async () => {
+	if (process.argv.length > 1) {
+		destination = process.argv[1];
+	}
+
 	while (true) {
 		console.log('running...');
 		await run();
