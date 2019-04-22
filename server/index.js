@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer'),
-	  config = require('config');
+	  	config = require('config'); 
 
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
@@ -170,6 +170,30 @@ async function waitForPageRender(page, awaitConfig) {
 		}
 }
 
+async function isPageLoaded(page, awaitConfig) {
+	let pageIsLoaded = true;
+	let awaitElems = awaitConfig;
+	
+	// always check for the body first
+	awaitElems.splice(0, 0, 'body');
+	for (var elem of awaitElems) {
+		if (pageIsLoaded == false) {
+			break;
+		}
+		await page.$(elem)
+			.catch((err) => {
+				console.log('failed looking for: ' + elem + ' -- ' + err);
+			})
+			.then((elem) => {
+				if (elem == null) {
+					pageIsLoaded = false;
+				}
+			});
+		}	
+
+	return pageIsLoaded;
+}
+
 async function customSleepDuration(page) {
 	if (config.sleep && config.sleep > 0) {
 		await page.waitFor(config.sleep)
@@ -190,7 +214,7 @@ async function runInitJSScripts(page, initEvals) {
 
 async function captureScreenshot(page, fileNumber, url) {
 	// filename is a zero-padded, 2 digit integer
-	await page.screenshot({ path: destination + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
+	await page.screenshot({ path: destination + '/' + fileNumber.toLocaleString('en', {minimumIntegerDigits: 2}) + '.png' })
 		.catch((err) => {
 			console.log('screenshot: ' + url + ' -- ' + err);
 		});
@@ -216,9 +240,12 @@ async function closePage(pageNumber, url) {
 async function downloadScreenshot(index, config) {
 	let page = await getPage(index);
 
-	await renderPage(page, config);
+	let pageIsLoaded = await isPageLoaded(page, config.await);
 
-	await runInitJSScripts(page, config.initEval);
+	if (pageIsLoaded == false) {
+		await renderPage(page, config);
+		await runInitJSScripts(page, config.initEval);
+	}
 
 	await captureScreenshot(page, index, config.url);
 
@@ -232,8 +259,8 @@ function sleep(seconds) {
 }
 
 (async () => {
-	if (process.argv.length > 1) {
-		destination = process.argv[1];
+	if (process.argv.length > 2) {
+		destination = process.argv[2];
 	}
 
 	while (true) {
