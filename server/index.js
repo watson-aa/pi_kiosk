@@ -4,8 +4,9 @@ const puppeteer = require('puppeteer'),
 const VIEWPORT_WIDTH = 1920;
 const VIEWPORT_HEIGHT = 1080;
 
-const MINUTES_SLEEP = 1;
+//const MINUTES_SLEEP = 1;
 
+var minutes_sleep = 1;
 var destination = '/tmp/';
 //var destination = '/var/www/html/pi_kiosk/';
 
@@ -258,11 +259,14 @@ function sleep(seconds) {
 	if (process.argv.length > 2) {
 		destination = process.argv[2];
 	}
+	if (process.argv.length > 3 && Number.isInteger(process.argv[3])) {
+		minutes_sleep = process.argv[3];
+	}
 
 	while (true) {
 		console.log('running...');
 		await run();
 		console.log('sleeping...');
-		await sleep(MINUTES_SLEEP * 60);
+		await sleep(minutes_sleep * 60);
 	}
 })();
