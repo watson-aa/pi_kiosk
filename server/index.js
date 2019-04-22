@@ -155,14 +155,10 @@ async function insertFormValues(page, formFiller) {
 }
 
 async function waitForPageRender(page, awaitConfig) {
-	// start with the basics
-	await page.waitFor('body')
-		.catch((err) => {
-			console.log('died waiting for BODY -- ' + err);
-		});
-
-	// now the custom blockers
-	for (var elem of awaitConfig) {
+	let awaitElems = awaitConfig;
+	// always check for the body first
+	awaitElems.splice(0, 0, 'body');
+	for (var elem of awaitElems) {
 		await page.waitFor(elem)
 			.catch((err) => {
 				console.log('died waiting for: ' + elem + ' -- ' + err);
