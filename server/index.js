@@ -24,25 +24,25 @@ async function run() {
 async function initBrowser() {
 	browser = await puppeteer.launch({'args': ['--no-sandbox'], 'ignoreHTTPSErrors': true})
 				.catch((err) => {
-					console.log('launch error: ' + config.url + ' -- ' + err);
+					console.log('launch error: ' + err);
 					browser = false;
 				});
 
 	// insert generic error handlers
 	browser.on('error', (err) => {
-		console.log('browser error: ' + config.url + ' -- ' + err);
+		console.log('browser error: ' + err);
 	});
 }
 
 async function createPage() {
 	const page = await browser.newPage()
 		.catch((err) => {
-			console.log('newPage error: ' + config.url + ' -- ' + err);
+			console.log('newPage error: ' + err);
 		});
 
 	// insert generic error handlers
 	page.on('error', (err) => {
-		console.log('page error: ' + config.url + ' -- ' + err);
+		console.log('page error: ' + err);
 	});
 
 	return page;
@@ -75,7 +75,7 @@ async function setPageViewportSize(page, viewportConfig) {
 		width: width,
 		height: height
 	  }).catch((err) => {
-		console.log('setViewport 1: ' + url + ' -- ' + err);
+		console.log('setViewport 1: ' + err);
 	});
 }
 
