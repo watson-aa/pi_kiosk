@@ -262,15 +262,10 @@ function sleep(seconds) {
 	if (process.argv.length > 3 && Number.isInteger(process.argv[3])) {
 		minutes_sleep = process.argv[3];
 	}
-	if (process.argv.length > 4 && Number.isInteger(process.argv[4])) {
-		config_data = config(process.argv[3]);
-	} else {
-		config_data = config;
-	}
 
 	while (true) {
 		console.log('running...');
-		await run(config_data);
+		await run(config);
 		console.log('sleeping...');
 		await sleep(minutes_sleep * 60);
 	}
