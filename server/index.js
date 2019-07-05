@@ -101,8 +101,9 @@ async function renderPage(page, config) {
 		pageLoaded = await loadInitialUrl(page, config.url);
 	}
 	
-	// newly loaded page or session ended
-	if (config['_loaded'] != true || page.url() != config.url) {
+	// newly loaded page or session ended.  
+	// the assumption is that the login will be forwarded to a different URL
+	if (config['_loaded'] != true && page.url() != config.url) {
 		await insertFormValues(page, config.formfiller);
 	}
 
@@ -234,8 +235,19 @@ async function closePage(pageNumber, url) {
 	pages[pageNumber] = false;
 }
 
+async function refreshPageIfRequired(page, config) {
+	if (config.refresh && Number.isInteger(config.refresh)) {
+		let secondsSinceLastRefresh = Math.floor((new Date() - config.lastRefresh) / 1000);
+		if (secondsSinceLastRefresh > config.refresh) {
+			await page.reload();
+		}
+	}
+}
+
 async function downloadScreenshot(index, config) {
 	let page = await getPage(index);
+
+	await refreshPageIfRequired(page, config);
 
 	let pageIsLoaded = await isPageLoaded(page, config.await);
 
@@ -245,6 +257,10 @@ async function downloadScreenshot(index, config) {
 	}
 
 	await captureScreenshot(page, index, config.url);
+
+	if (!config.lastRefresh) {
+		config.lastRefresh = new Date();
+	}
 
 	if (config.closePage == true) {
 		await closePage(index, config.url);
