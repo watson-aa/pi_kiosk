@@ -1,0 +1,2 @@
+timeout /t 15
+start "" "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --window-position=1980,0 --start-fullscreen --user-data-dir=c:/temp/02/cache --new-window "file://c:/temp/02/00.png" "file://c:/temp/02/01.png" "file://c:/temp/02/02.png" "file://c:/temp/02/03.png" "file://c:/temp/02/04.png"
